@@ -5,12 +5,12 @@ from DASH5590.Kombucha_tweets
 where message_action = 'post';
 
 create or replace view sentiment 
-as
-(select s.message_ID, s.sentiment_polarity,
+as (
+select s.message_ID, s.sentiment_polarity,
 m.type,
 s.sentiment_term,
 t.user_gender,
-t.user_country,
+upper(t.user_country) as user_country_u,
 t.user_friends_count,
 t.user_followers_count,
 t.user_statuses_count, 
@@ -20,24 +20,6 @@ from Kombucha_tweets t
 join Kombucha_sentiments s on t.message_id = s.message_id
 left join Kombucha_media m on t.message_id= m.message_id
 );
-
-create or replace view sentiment 
-as
-(select s.message_ID, s.sentiment_polarity,
-m.type,
-s.sentiment_term,
-t.user_gender,
-t.user_country,
-t.user_friends_count,
-t.user_followers_count,
-t.user_statuses_count, 
-t.message_retweet_count,
-t.message_favorites_count
-from Kombucha_tweets t
-join Kombucha_sentiments s on t.message_id = s.message_id
-left join Kombucha_media m on t.message_id= m.message_id
-);
-
 
 SELECT sentiment_polarity, sentiment_term FROM DASH5590.KOMBUCHA_SENTIMENTS where sentiment_polarity = 'NEGATIVE';
 
@@ -47,18 +29,19 @@ count(sentiment_term) as Term_Count
 FROM DASH5590.KOMBUCHA_SENTIMENTS GROUP BY sentiment_polarity;
 
 
-select s.user_country, 
+select user_country_u,
 integer(avg(s.user_followers_count)) as avg_follower_cnt, 
 integer(avg(s.user_statuses_count)) as avg_statuses_cnt, 
 integer(avg(s.message_retweet_count)) as avg_retweet_cnt, 
 integer(avg(s.message_favorites_count)) as avg_favorite_cnt, 
 integer(avg(s.user_friends_count)) as avg_friend_cnt
 from sentiment s
-group by s.user_country
-order by s.user_country
+group by user_country_u
+order by avg_retweet_cnt desc
 ;
 
-select s.user_country, 
+-- This query has a problem - kombucha_users has duplicate message_id values
+select user_country_u,
 count (s.message_id) as num_tweets,
 count (distinct(u.user_screen_name)) as num_distinct_users,
 integer(avg(s.user_followers_count)) as avg_follower_cnt, 
@@ -73,30 +56,18 @@ integer(avg(s.user_friends_count)) as avg_friend_cnt,
 integer(max(s.user_friends_count)) as max_friend_cnt
 from sentiment s
 inner join Kombucha_users u on u.message_id = s.message_id
-group by s.user_country
-order by s.user_country
+group by user_country_u
+order by max_follower_cnt desc
 ;
 
-
---count (distinct(u.user_screen_name)) as num_distinct_users,
---inner join Kombucha_users u on u.message_id = s.message_id
-
-select s.user_country, 
-count (s.message_id) as num_tweets,
-integer(avg(s.user_followers_count)) as avg_follower_cnt, 
-integer(max(s.user_followers_count)) as max_follower_cnt, 
-integer(avg(s.user_statuses_count)) as avg_statuses_cnt, 
-integer(max(s.user_statuses_count)) as max_statuses_cnt, 
+select s.user_country_u,
 integer(avg(s.message_retweet_count)) as avg_retweet_cnt, 
-integer(max(s.message_retweet_count)) as max_retweet_cnt, 
-integer(avg(s.message_favorites_count)) as avg_favorite_cnt, 
-integer(max(s.message_favorites_count)) as max_favorite_cnt, 
-integer(avg(s.user_friends_count)) as avg_friend_cnt,
-integer(max(s.user_friends_count)) as max_friend_cnt
+count(message_id) as num_messages
 from sentiment s
-group by s.user_country
-order by s.user_country
+group by s.user_country_u
+order by avg_retweet_cnt desc
 ;
+
 
 select s.user_country count(*)
   from   sentiment s
@@ -109,7 +80,7 @@ select s.message_id, s.user_country
   from   sentiment s
   where s.user_country like 'Burkina%'
   ; 
-	 -- group  by s.message_id, s.user_country
+	 - group  by s.message_id, s.user_country
  -- having count(*) > 1
 
 
