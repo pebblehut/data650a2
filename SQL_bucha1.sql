@@ -99,6 +99,7 @@ group by user_summary;
 
 
 -- View for influencers
+-- Note: can't have order by
 create or replace view influencers
 as (
 select 
@@ -119,7 +120,6 @@ user_statuses_count  > 13000 or
 user_friends_count   > 1400)
 )
 group by user_summary
-order by followers desc
 );
 
 -- Just the query for influencers
