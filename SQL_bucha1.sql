@@ -66,7 +66,10 @@ order by num_messages desc
 -- Great
 select message_body 
 from kombucha_tweets
-where message_body like '%addiction%' or message_body like '%obsessed%'
+where message_body like '%addiction%' or 
+      message_body like '%stop%' or
+      message_body like '%bad%' or
+      message_body like '%obsessed%'
 ;
 
 select user_country_u,
@@ -79,6 +82,70 @@ from sentiment s
 group by user_country_u
 order by avg_retweet_cnt desc
 ;
+
+select 
+min(message_body) as message_body,
+user_summary,
+min(user_followers_count) as followers_count,
+min(user_statuses_count) as user_statuses_count,
+min(user_friends_count)  as user_friends_count
+from kombucha_tweets
+
+where 
+(user_followers_count > 3800 or
+user_statuses_count  > 13000 or
+user_friends_count   > 1400)
+group by user_summary;
+
+
+-- View for influencers
+create or replace view influencers
+as (
+select 
+max(message_body) as message_body,
+user_summary,
+count(message_id) as num_messages,
+min(user_display_name) as display_name,
+min(user_followers_count) as followers,
+min(user_statuses_count) as user_statuses,
+min(user_friends_count)  as user_friends
+from kombucha_tweets
+
+where 
+(
+message_language = 'en' and
+(user_followers_count > 3800 or
+user_statuses_count  > 13000 or
+user_friends_count   > 1400)
+)
+group by user_summary
+order by followers desc
+);
+
+-- Just the query for influencers
+select 
+max(message_body) as message_body,
+user_summary,
+count(message_id) as num_messages,
+min(user_display_name) as display_name,
+min(user_followers_count) as followers,
+min(user_statuses_count) as user_statuses,
+min(user_friends_count)  as user_friends
+from kombucha_tweets
+
+where 
+(
+message_language = 'en' and
+(user_followers_count > 3800 or
+user_statuses_count  > 13000 or
+user_friends_count   > 1400)
+)
+group by user_summary
+order by followers desc
+;
+
+select distinct 
+
 
 -- This query has a problem - kombucha_users has duplicate message_id values
 select user_country_u,
