@@ -32,3 +32,4 @@ which.max(table(posts))
 
 plot(table(posts), xlab="Date", ylab="Posts per Day")
 #plot(table(format(posts, "%Y-%m")), xlab="Date", ylab="Posts per Month")
+

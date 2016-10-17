@@ -56,3 +56,4 @@ par(mar=c(5,4,6,2))
 tuk <- glht(friend.fit, linfct=mcp(USER_GENDER="Tukey"))
 plot(cld(tuk, level=.05),col="lightgrey")
 detach(tweets.subset.df)
+
